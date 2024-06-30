@@ -3,7 +3,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 
 /**
  *
@@ -17,10 +19,12 @@ import java.util.List;
 public class ATC {
     private int available_gates; // this variable only keeps track of regular planes in the first 2 gates
     private final List<Gate> gates;
+    private final PriorityQueue<Plane> landing_queue;
     
     public ATC(Runway runway, List<Gate> gates) {
         this.gates = gates;
         this.available_gates = gates.size() - 1; // exclude the emergency gate
+        this.landing_queue = new PriorityQueue<>(new PlanePriorityComparator());
         System.out.println(Main.getCurrentTime() + " ATC: Available Gates: " + available_gates); // debug
     }
     
@@ -29,21 +33,23 @@ public class ATC {
         System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() + ", hold position");
         
         synchronized (this) {
-            // check if emergency flight
-            if(plane.isEmergency()) {
-                // set emergency thread prioritya and land immediately
-                plane.getThread().setPriority(Thread.MAX_PRIORITY); // backup
-                System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() + ", you are cleared to land on the Runway");
-                plane.land();
-                return;
+            landing_queue.offer(plane);
+            while (!landing_queue.peek().equals(plane)) {
+                wait(); // Wait until it's this plane's turn in the queue
             }
             
-            // regular planes wait for available gates
-            while(available_gates <= 0) {
-                wait(); // wait until a normal gate is available on the ground
+            // check if emergency flight
+            if(plane.isEmergency()) {
+                // handle emergency flight
+                System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() + ", you are cleared to land on the Runway");
+                plane.land();
+            } else{
+                while (available_gates <= 0) {
+                    wait(); // Wait until a gate is available for regular landing
+                }
+                System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() + ", you are cleared to land on the Runway");
+                plane.land();
             }
-            System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() + ", you are cleared to land on the Runway");
-            plane.land();
         }
         
     }
@@ -100,5 +106,20 @@ public class ATC {
 
         // for regular planes
         available_gates++;
+    }
+    
+    // always ensures emergency planes are placed first
+    private static class PlanePriorityComparator implements Comparator<Plane> {
+        @Override
+        public int compare(Plane p1, Plane p2) {
+            // prioritizes emergency planes
+            if (p1.isEmergency() && !p2.isEmergency()) {
+                return -1;
+            } else if (!p1.isEmergency() && p2.isEmergency()) {
+                return 1;
+            } else {
+                return 0; // equal priotity or both emergency
+            }
+        }
     }
 }
