@@ -44,6 +44,7 @@ public class Main {
         // Shuffle the planes array to randomize the order
         shuffleArray(planes);
         
+        
         // Start planes with random delays
         Random random = new Random();
         for (Plane plane : planes) {
@@ -53,8 +54,8 @@ public class Main {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            System.out.println(getCurrentTime() + " Plane " + plane.getID() + " has entered the airspace");
             Thread thread = new Thread(plane); // Create a new thread for the plane
+            System.out.println(getCurrentTime() + " Plane " + plane.getID() + "(" + plane.getPassengerCount() + ")" + " has entered the airspace");
             thread.start();
         }
     }
