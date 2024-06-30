@@ -1,0 +1,16 @@
+Print processes to implement:
+
+Landing process
+- Approach and Clearance
+- Final Approach
+- Flare and Touchdown
+- Rollout
+- Taxi to Gate
+
+Takeoff process
+- Taxi to Runway
+- Lineup and Wait
+- Takeoff Roll
+- Rotation and Climb
+- Departure
+    - leave the airspace
