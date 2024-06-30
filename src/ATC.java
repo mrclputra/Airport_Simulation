@@ -29,13 +29,15 @@ public class ATC {
     }
     
     public void requestLanding(Plane plane) throws InterruptedException {
-        // all planes on hold initially
+        // put all planes on initial hold order
         System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() + ", hold position");
         
         synchronized (this) {
-            landing_queue.offer(plane);
+            landing_queue.offer(plane); // add to queue
+            
+            // wait until it's this plane's turn in the queue, applies to all
             while (!landing_queue.peek().equals(plane)) {
-                wait(); // wait until it's this plane's turn in the queue, applies to all
+                wait(); // wait[1]
             }
             
             // handle emergency flights
@@ -45,15 +47,15 @@ public class ATC {
             } else {
                 // handle normal flights
                 while (available_gates == 0) {
-                    wait(); // wait until a gate is available for regular landing
+                    wait(); // wait[2]
                 }
                 System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() + ", you are cleared to land on the Runway");
                 plane.land();
             }
             
             landing_queue.poll(); // remove plane from landing queue
-            notifyAll(); // notifies queue that the list has been updated, moving it up
-            // what the fuck
+            notifyAll(); // notifies wait[1]
+            // wtf?
         }
         
     }
@@ -67,7 +69,7 @@ public class ATC {
             return;
         }
         
-        // notifies queue that there is now an empty gate
+        // notifies wait[2]
         notifyAll();
     }
     

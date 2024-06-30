@@ -24,7 +24,7 @@ public class Plane implements Runnable {
     private final ATC atc;
     private final FuelTruck truck;
     
-    private final int max_passengers = 20;
+    private final int max_passengers = 10;
     private Passenger[] passengers;
     private final ExecutorService disembark_exs;
     private final ExecutorService board_exs;
@@ -100,27 +100,27 @@ public class Plane implements Runnable {
             System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Docked at gate " + gate.getID());
             
             refuel_thread.start(); // start service plane threads
-//            resupply_thread.start(); 
-//            cleaning_thread.start();
+            resupply_thread.start(); 
+            cleaning_thread.start();
             
             // uncomment/comment block below to toggle passenger simulation
-//            System.out.println(Main.getCurrentTime() + " Plane " + ID + " is disembarking passengers");
-//            disembarkPassengers(); // disembark passengers
-//            Thread.sleep(500); // time between disembark and boarding processes
-//            boardPassengers(generatePassengers()); // board new passengers
+            System.out.println(Main.getCurrentTime() + " Plane " + ID + " is disembarking passengers");
+            disembarkPassengers(); // disembark passengers
+            Thread.sleep(200); // time between disembark and boarding processes
+            boardPassengers(generatePassengers()); // board new passengers
 
             // here I explicitly wait for all processes to finish before proceeding
             // through java 21 should handle it implicitly on its own
             refuel_thread.join();
-//            resupply_thread.join();
-//            cleaning_thread.join();
+            resupply_thread.join();
+            cleaning_thread.join();
 
             atc.releaseGate(gate, this); // undock from gate
             System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Leaving gate " + gate.getID());
             System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Requesting permission to takeoff");
             atc.requestTakeoff(this);   // request takeoff from atc
             
-            Thread.sleep(4000); // simulate time to leave airspace
+            Thread.sleep(2000); // simulate time to leave airspace
             System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Leaving the airspace");
             
         } catch (InterruptedException e) {
