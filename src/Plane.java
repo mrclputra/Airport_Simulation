@@ -34,16 +34,15 @@ public class Plane implements Runnable {
     private final Thread cleaning_thread;
     
     // reference to own thread, to allow external control (i.e. thread prioritization)
-    private final Thread plane_thread; 
+//    private Thread plane_thread; 
     
     // constructor
-    public Plane(int ID, ATC atc, FuelTruck truck, boolean is_emergency, Thread plane_thread) {
+    public Plane(int ID, ATC atc, FuelTruck truck, boolean is_emergency) {
         this.ID = ID;
         this.atc = atc;
         this.truck = truck;
         this.is_emergency = is_emergency;
         this.is_refueled = false;
-        this.plane_thread = plane_thread;
         
         // generate current passengers on entering airspace
         this.passengers = generatePassengers();
@@ -101,8 +100,8 @@ public class Plane implements Runnable {
             System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Docked at gate " + gate.getID());
             
             refuel_thread.start(); // start service plane threads
-            resupply_thread.start(); 
-            cleaning_thread.start();
+//            resupply_thread.start(); 
+//            cleaning_thread.start();
             
             // uncomment/comment block below to toggle passenger simulation
 //            System.out.println(Main.getCurrentTime() + " Plane " + ID + " is disembarking passengers");
@@ -113,8 +112,8 @@ public class Plane implements Runnable {
             // here I explicitly wait for all processes to finish before proceeding
             // through java 21 should handle it implicitly on its own
             refuel_thread.join();
-            resupply_thread.join();
-            cleaning_thread.join();
+//            resupply_thread.join();
+//            cleaning_thread.join();
 
             atc.releaseGate(gate, this); // undock from gate
             System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Leaving gate " + gate.getID());
@@ -132,13 +131,13 @@ public class Plane implements Runnable {
     
     public void land() throws InterruptedException {
         System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Affirmative, landing on the runway");
-        Thread.sleep(5000); // simulate landing process
+        Thread.sleep(2000); // simulate landing process
         System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Landed on the runway");
     }
     
     public void takeoff() throws InterruptedException {
         System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Affirmative, heading to runway to takeoff");
-        Thread.sleep(5000); // simulate time to takeoff
+        Thread.sleep(2000); // simulate time to takeoff
         System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Airborne, now climbing to altitude");
     }
     
@@ -215,11 +214,6 @@ public class Plane implements Runnable {
     
     public boolean isEmergency() {
         return is_emergency;
-    }
-    
-    // for external thread control reference
-    public Thread getThread() {
-        return plane_thread;
     }
     
     public void setRefueled(boolean refueled) {

@@ -21,7 +21,7 @@ public class ATC {
     private final List<Gate> gates;
     private final PriorityQueue<Plane> landing_queue;
     
-    public ATC(Runway runway, List<Gate> gates) {
+    public ATC(List<Gate> gates) {
         this.gates = gates;
         this.available_gates = gates.size() - 1; // exclude the emergency gate
         this.landing_queue = new PriorityQueue<>(new PlanePriorityComparator());
@@ -29,27 +29,31 @@ public class ATC {
     }
     
     public void requestLanding(Plane plane) throws InterruptedException {
-        // all planes on hold
+        // all planes on hold initially
         System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() + ", hold position");
         
         synchronized (this) {
             landing_queue.offer(plane);
             while (!landing_queue.peek().equals(plane)) {
-                wait(); // Wait until it's this plane's turn in the queue
+                wait(); // wait until it's this plane's turn in the queue, applies to all
             }
             
-            // check if emergency flight
+            // handle emergency flights
             if(plane.isEmergency()) {
-                // handle emergency flight
                 System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() + ", you are cleared to land on the Runway");
                 plane.land();
-            } else{
-                while (available_gates <= 0) {
-                    wait(); // Wait until a gate is available for regular landing
+            } else {
+                // handle normal flights
+                while (available_gates == 0) {
+                    wait(); // wait until a gate is available for regular landing
                 }
                 System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() + ", you are cleared to land on the Runway");
                 plane.land();
             }
+            
+            landing_queue.poll(); // remove plane from landing queue
+            notifyAll(); // notifies queue that the list has been updated, moving it up
+            // what the fuck
         }
         
     }
@@ -59,12 +63,11 @@ public class ATC {
         plane.takeoff();
 
         if(plane.isEmergency()) {
-            plane.setEmergency(false); // after takeoff, reset emergency plane value to false
+            plane.setEmergency(false); // no notify here, as emergencies dont use normal gates
             return;
         }
-
-        // this is not required for emergency planes, in single case
-        // notify a waiting plane in the sky that a regular gate is now available
+        
+        // notifies queue that there is now an empty gate
         notifyAll();
     }
     
@@ -72,29 +75,24 @@ public class ATC {
     // no need for additional wait or notifies for the gate system
     // i kept this synchronized because of the Gate occupancy and available_gates variables are mutable and shared
     public synchronized Gate assignGate(Plane plane) throws InterruptedException {
-        // for planes with an emergency
-        if(plane.isEmergency()) {
-            // reset priority to normal as the plane has landed
-            // this should reset priority in the case of takeoff and fuel truck lines
-            System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() + 
+        if (plane.isEmergency()) {
+            System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() +
                     ", please proceed to Gate 3 for docking");
-            plane.getThread().setPriority(Thread.NORM_PRIORITY); 
-            return gates.get(2); // assign plane to emergency gate
+            return gates.get(2); // Assign emergency plane to the emergency gate
         }
-        
-        // for regular planes
-        for(Gate gate : gates) {
-            if(!gate.isOccupied()) {
-                System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() + 
+
+        for (Gate gate : gates) {
+            if (!gate.isOccupied()) {
+                System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() +
                         ", please proceed to Gate " + gate.getID() + " for docking");
                 gate.occupyGate(plane);
                 available_gates--;
+                System.out.println(Main.getCurrentTime() + " Available Gates: " + available_gates);
                 return gate;
             }
         }
-        throw new IllegalStateException("Error: No gates available"); // in theory this should never happen :3
-        //return null;
-    } 
+        throw new IllegalStateException("Error: No gates available");
+    }
     
     // as I do not store the plane object in the assigned Gate's class, I need to pass it in manually again
     // same argument as in 'assignGate'
@@ -106,6 +104,7 @@ public class ATC {
 
         // for regular planes
         available_gates++;
+        System.out.println(Main.getCurrentTime() + " Available Gates: " + available_gates);
     }
     
     // always ensures emergency planes are placed first
