@@ -13,31 +13,35 @@
  */
 public class Plane implements Runnable {
     
-    private int ID;
-    private ATC atc;
+    private final int ID;
+    private final ATC atc;
     private boolean is_emergency;
+    
+    // reference to own thread, to allow external control (i.e. prioritization)
+    private final Thread thread; 
     
     // to be implemented, arrays for passengers
     //private Passenger[] psg;
     
     // constructor
-    public Plane(int ID, ATC atc, boolean is_emergency) {
+    public Plane(int ID, ATC atc, boolean is_emergency, Thread thread) {
         this.ID = ID;
         this.atc = atc;
         this.is_emergency = is_emergency;
+        this.thread = thread;
     }
     
     @Override
     public void run() {
         // implement landing docking and takeoff reques processes here
         try {
+            if(is_emergency) {
+                System.out.println(Main.getCurrentTime() + " Plane " + ID + " has a fuel emergency");
+            }
             atc.requestLanding(this);   // request landing from atc
 
             Gate gate = atc.assignGate(this); // get assigned a gate from atc
-            if(is_emergency) {
-                System.out.println("Plane " + ID + " undergoing repairs");
-            }
-            System.out.println("Plane " + ID + " is doing shit on the ground");
+            System.out.println(Main.getCurrentTime() + " Plane " + ID + " is doing shit on the ground");
             Thread.sleep(5000); // simulate time on ground, do not put this in gate class
 
             atc.releaseGate(gate, this); // undock from gate
@@ -59,5 +63,9 @@ public class Plane implements Runnable {
     
     public boolean isEmergency() {
         return is_emergency;
+    }
+    
+    public Thread getThread() {
+        return thread;
     }
 }

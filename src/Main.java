@@ -3,6 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -29,11 +31,15 @@ public class Main {
         // generate planes
         Plane[] planes = new Plane[8]; // Array to store Plane instances
         for (int i = 0; i < 7; i++) {
-            planes[i] = new Plane(i + 1, atc, false); // Create normal planes
+            Thread thread = new Thread();
+            planes[i] = new Plane(i + 1, atc, false, thread); // Create normal planes
+            thread = new Thread(planes[i]);
         }
         
-        // Setup an emergency plane
-        planes[7] = new Plane(8, atc, true); // Create emergency plane
+        // emergency plane
+        Thread emergencyThread = new Thread();
+        planes[7] = new Plane(8, atc, true, emergencyThread); // Create emergency plane
+        emergencyThread = new Thread(planes[7]);
         
         // Shuffle the planes array to randomize the order
         shuffleArray(planes);
@@ -47,10 +53,17 @@ public class Main {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            System.out.println("Plane " + plane.getID() + " has entered the airspace");
+            System.out.println(getCurrentTime() + " Plane " + plane.getID() + " has entered the airspace");
             Thread thread = new Thread(plane); // Create a new thread for the plane
             thread.start();
         }
+    }
+    
+    // used to keep track of "simultaneous" processes and time
+    public static String getCurrentTime() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("ss:SSS"); // seconds and milliseconds
+        LocalDateTime now = LocalDateTime.now();
+        return dtf.format(now);
     }
     
     // used to shuffle order of planes

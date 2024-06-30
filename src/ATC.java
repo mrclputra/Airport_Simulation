@@ -21,31 +21,32 @@ public class ATC {
         this.runway = runway;
         this.gates = gates;
         this.available_gates = gates.size() - 1; // exclude the emergency gate
-        System.out.println("Available Gates " + available_gates);
+        System.out.println(Main.getCurrentTime() + " Available Gates " + available_gates);
     }
     
     public synchronized void requestLanding(Plane plane) throws InterruptedException {
         // check if emergency, bypass to assign directly to gate 3
         if(plane.isEmergency()) {
-            System.out.println("Plane " + plane.getID() + " is preparing to land");
+            plane.getThread().setPriority(Thread.MAX_PRIORITY); // assign first priority for landing sequence, as backup
+            System.out.println(Main.getCurrentTime() + " Plane " + plane.getID() + " is preparing to land");
             runway.land(plane);
-            System.out.println("Plane " + plane.getID() + " is coasting to emergency gate");
+            System.out.println(Main.getCurrentTime() + " Plane " + plane.getID() + " is coasting to emergency gate");
             return;
         }
         
         // regular planes
         while(available_gates <= 0) {
-            System.out.println("Plane " + plane.getID() + " is waiting to land");
+            System.out.println(Main.getCurrentTime() + " Plane " + plane.getID() + " is waiting to land");
             wait(); // wait until a normal gate is available on the ground
         }
-        System.out.println("Plane " + plane.getID() + " is preparing to land");
+        System.out.println(Main.getCurrentTime() + " Plane " + plane.getID() + " is preparing to land");
         runway.land(plane);
         available_gates--;
-        System.out.println("Plane " + plane.getID() + " is coasting to a gate");
+        System.out.println(Main.getCurrentTime() + " Plane " + plane.getID() + " is coasting to a gate");
     }
     
     public synchronized void requestTakeoff(Plane plane) throws InterruptedException {
-        System.out.println("Plane " + plane.getID() + " is preparing to takeoff");
+        System.out.println(Main.getCurrentTime() + " Plane " + plane.getID() + " is preparing to takeoff");
         runway.takeoff(plane);
         
         if(plane.isEmergency()) {
@@ -64,6 +65,9 @@ public class ATC {
     public synchronized Gate assignGate(Plane plane) throws InterruptedException {
         // assign to emergency gate 3
         if(plane.isEmergency()) {
+            // reset priority to normal as the plane has landed
+            // this will prevent the plane from becoming always first again in the case of takeoff and fuel queues
+            plane.getThread().setPriority(Thread.NORM_PRIORITY); 
             return gates.get(2);
         }
         
@@ -71,7 +75,7 @@ public class ATC {
         for(Gate gate : gates) {
             if(!gate.isOccupied()) {
                 gate.occupyGate(plane);
-                System.out.println("Available Gates " + available_gates);
+                System.out.println(Main.getCurrentTime() + " Available Gates " + available_gates);
                 return gate;
             }
         }
@@ -89,6 +93,6 @@ public class ATC {
 
         // For regular planes
         available_gates++;
-        System.out.println("Available Gates " + available_gates); // debug
-}
+        System.out.println(Main.getCurrentTime() + " Available Gates " + available_gates); // debug
+    }
 }
