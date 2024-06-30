@@ -8,20 +8,24 @@ import java.util.List;
 /**
  *
  * @author admin
- * centralize all plane-related operations and actions here
- * does not support more than one emergency at a time, that would require a new thread system
+ * centralize all plane-related operations and actions here; 
+ * should i want to implement multiple planes with emergencies, I need a new threading system
+ * and be able to assign them to normal gates as well
  * 
  */
 public class ATC {
     private int available_gates; // this variable only keeps track of regular planes in the first 2 gates
     private final Runway runway;
     private final List<Gate> gates;
+    private final FuelTruck fuel_truck;
     
     public ATC(Runway runway, List<Gate> gates) {
         this.runway = runway;
         this.gates = gates;
         this.available_gates = gates.size() - 1; // exclude the emergency gate
-        System.out.println(Main.getCurrentTime() + " Available Gates " + available_gates);
+        System.out.println(Main.getCurrentTime() + " Available Gates: " + available_gates);
+        
+        this.fuel_truck = new FuelTruck();
     }
     
     public synchronized void requestLanding(Plane plane) throws InterruptedException {
@@ -41,7 +45,6 @@ public class ATC {
         }
         System.out.println(Main.getCurrentTime() + " Plane " + plane.getID() + " is preparing to land");
         runway.land(plane);
-        available_gates--;
         System.out.println(Main.getCurrentTime() + " Plane " + plane.getID() + " is coasting to a gate");
     }
     
@@ -55,27 +58,28 @@ public class ATC {
         }
         
         // this is not required for emergency planes
-        // notify waiting planes in the sky that a regular gate is now available
-        notifyAll();
+        // notify a waiting plane in the sky that a regular gate is now available
+        notify();
     }
     
     // as per assginment detailed, there will always be a gate available to assign to landed planes
     // no need for additional wait or notifies for the gate system
     // i kept this synchronized because of the Gate occupancy and available_gates variables are mutable and shared
     public synchronized Gate assignGate(Plane plane) throws InterruptedException {
-        // assign to emergency gate 3
+        // for planes with an emergency
         if(plane.isEmergency()) {
             // reset priority to normal as the plane has landed
-            // this will prevent the plane from becoming always first again in the case of takeoff and fuel queues
+            // this should reset priority in the case of takeoff and fuel truck lines
             plane.getThread().setPriority(Thread.NORM_PRIORITY); 
-            return gates.get(2);
+            return gates.get(2); // assign plane to emergency gate
         }
         
         // for regular planes
         for(Gate gate : gates) {
             if(!gate.isOccupied()) {
                 gate.occupyGate(plane);
-                System.out.println(Main.getCurrentTime() + " Available Gates " + available_gates);
+                available_gates--;
+                System.out.println(Main.getCurrentTime() + " Available Gates: " + available_gates);
                 return gate;
             }
         }
@@ -91,8 +95,12 @@ public class ATC {
             return;
         }
 
-        // For regular planes
+        // for regular planes
         available_gates++;
-        System.out.println(Main.getCurrentTime() + " Available Gates " + available_gates); // debug
+        System.out.println(Main.getCurrentTime() + " Available Gates: " + available_gates); // debug
+    }
+    
+    public void requestRefuel(Plane plane) throws InterruptedException {
+        fuel_truck.refuel(plane);
     }
 }

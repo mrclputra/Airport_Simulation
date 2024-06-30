@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -16,8 +17,11 @@ import java.util.Random;
  * 
  */
 public class Main {
+    private static LocalDateTime start_time; // start time to keep track of program duration
+    
     public static void main(String[] args) {
         System.out.println("Hello World");
+        start_time = LocalDateTime.now(); // initialize the start time
         
         Runway runway = new Runway();
         
@@ -29,8 +33,8 @@ public class Main {
         ATC atc = new ATC(runway, gates);
         
         // generate planes
-        Plane[] planes = new Plane[8]; // Array to store Plane instances
-        for (int i = 0; i < 7; i++) {
+        Plane[] planes = new Plane[6]; // Array to store Plane instances
+        for (int i = 0; i < 5; i++) {
             Thread thread = new Thread();
             planes[i] = new Plane(i + 1, atc, false, thread); // Create normal planes
             thread = new Thread(planes[i]);
@@ -38,23 +42,23 @@ public class Main {
         
         // emergency plane
         Thread emergencyThread = new Thread();
-        planes[7] = new Plane(8, atc, true, emergencyThread); // Create emergency plane
-        emergencyThread = new Thread(planes[7]);
+        planes[5] = new Plane(6, atc, true, emergencyThread); // Create emergency plane
+        emergencyThread = new Thread(planes[5]);
         
-        // Shuffle the planes array to randomize the order
+        // shuffle the planes array to randomize the order
         shuffleArray(planes);
         
         
-        // Start planes with random delays
+        // start planes with random delays of 0-2 seconds
         Random random = new Random();
         for (Plane plane : planes) {
-            int delay = random.nextInt(2000); // Random delay up to 2 seconds
+            int delay = random.nextInt(2000); // delay generation here
             try {
                 Thread.sleep(delay);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            Thread thread = new Thread(plane); // Create a new thread for the plane
+            Thread thread = new Thread(plane); // create a new thread for the plane
             System.out.println(getCurrentTime() + " Plane " + plane.getID() + "(" + plane.getPassengerCount() + ")" + " has entered the airspace");
             thread.start();
         }
@@ -62,9 +66,10 @@ public class Main {
     
     // used to keep track of "simultaneous" processes and time
     public static String getCurrentTime() {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("ss:SSS"); // seconds and milliseconds
-        LocalDateTime now = LocalDateTime.now();
-        return dtf.format(now);
+        Duration duration = Duration.between(start_time, LocalDateTime.now());
+        long seconds = duration.getSeconds();
+        long millis = duration.toMillis() % 1000;
+        return String.format("%02d:%03d", seconds, millis);
     }
     
     // used to shuffle order of planes

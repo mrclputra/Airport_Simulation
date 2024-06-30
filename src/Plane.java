@@ -11,38 +11,46 @@ import java.util.Random;
 /**
  *
  * @author admin
+ * This is the main class for all Planes; all passenger objects are declared and used here
  * plane action requests and ATC function calls are done here
  * 
  */
 public class Plane implements Runnable {
     
     private final int ID;
-    private final ATC atc;
     private boolean is_emergency;
+    private boolean is_refueled;
+    
+    private final ATC atc;
     
     private final int max_passengers = 20;
     private Passenger[] passengers;
     private final ExecutorService disembark_exs;
     private final ExecutorService board_exs;
     
-    private Thread resupply_thread;
+    private final Thread resupply_thread;
+    private final Thread refuel_thread;
+    private final Thread cleaning_thread;
     
-    // reference to own thread, to allow external control (i.e. prioritization)
-    private final Thread thread; 
+    // reference to own thread, to allow external control (i.e. thread prioritization)
+    private final Thread plane_thread; 
     
     // constructor
-    public Plane(int ID, ATC atc, boolean is_emergency, Thread thread) {
+    public Plane(int ID, ATC atc, boolean is_emergency, Thread plane_thread) {
         this.ID = ID;
         this.atc = atc;
         this.is_emergency = is_emergency;
-        this.thread = thread;
+        this.is_refueled = false;
+        this.plane_thread = plane_thread;
         
         // generate current passengers on entering airspace
         this.passengers = generatePassengers();
         
-        disembark_exs = Executors.newSingleThreadExecutor(); // single thread executor for sequential execution
+        // use single thread executors for sequential execution
+        disembark_exs = Executors.newSingleThreadExecutor(); 
         board_exs = Executors.newSingleThreadExecutor();
         
+        // initialize the resupply thread
         resupply_thread = new Thread(() -> {
             try {
                 resupplyPlane();
@@ -52,30 +60,61 @@ public class Plane implements Runnable {
             }
  
         });
+        
+        // initialize the cleaning thread
+        cleaning_thread = new Thread(() -> {
+            try {
+                cleanPlane();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                e.printStackTrace();
+            }
+        });
+        
+        // initialize the refueling thread
+        refuel_thread = new Thread(() -> {
+                try {
+                    atc.requestRefuel(this); // request refuel truck
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    e.printStackTrace();
+                }
+            });
     }
     
-    // implement all landing, docking, and takeoff, request processes here
+    // implement all landing, docking, and takeoff, ATC request processes here
     @Override
     public void run() {
         try {
             if(is_emergency) {
+                // declare emergency
                 System.out.println(Main.getCurrentTime() + " Plane " + ID + " has a fuel emergency");
             }
             atc.requestLanding(this);   // request landing from atc
 
             Gate gate = atc.assignGate(this); // get assigned a gate from atc
             
-            resupply_thread.start();
+            resupply_thread.start(); // start service plane threads
+            cleaning_thread.start();
+            refuel_thread.start();
             
-            System.out.println(Main.getCurrentTime() + " Plane " + ID + " is disembarking passengers");
-            disembarkPassengers(); // disembark passengers
-            Thread.sleep(500); // time between disembark and boarding processes
-            boardPassengers(generatePassengers()); // board new passengers
+            // uncomment below to include passenger simulation
+//            System.out.println(Main.getCurrentTime() + " Plane " + ID + " is disembarking passengers");
+//            disembarkPassengers(); // disembark passengers
+//            Thread.sleep(500); // time between disembark and boarding processes
+//            boardPassengers(generatePassengers()); // board new passengers
 
-            resupply_thread.join(); // explicitly wait for resupply to finish
+            // here I explicitly wait for all processes to finish before proceeding
+            // through java 21 should handle it implicitly on its own
+            refuel_thread.join();
+            resupply_thread.join();
+            cleaning_thread.join();
 
             atc.releaseGate(gate, this); // undock from gate
             atc.requestTakeoff(this);   // request takeoff from atc
+            
+            Thread.sleep(4000); // simulate time to leave airspace
+            System.out.println(Main.getCurrentTime() + " Plane " + ID + " has left the airspace");
             
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -85,8 +124,14 @@ public class Plane implements Runnable {
     
     private void resupplyPlane() throws InterruptedException {
         System.out.println(Main.getCurrentTime() + " Plane " + ID + " is being resupplied");
-        Thread.sleep(4000);
+        Thread.sleep(4000); // duration of plane resupplying
         System.out.println(Main.getCurrentTime() + " Plane " + ID + " has finished resupplying");
+    }
+    
+    private void cleanPlane() throws InterruptedException {
+        System.out.println(Main.getCurrentTime() + " Plane " + ID + " is being cleaned");
+        Thread.sleep(3000); // duration of plane cleaning
+        System.out.println(Main.getCurrentTime() + " Plane " + ID + " has finished cleaning");
     }
     
     private void disembarkPassengers() throws InterruptedException {
@@ -147,12 +192,21 @@ public class Plane implements Runnable {
     public void setEmergency(boolean state) {
         this.is_emergency = state;
     }
+    
     public boolean isEmergency() {
         return is_emergency;
     }
     
     // for external thread control reference
     public Thread getThread() {
-        return thread;
+        return plane_thread;
+    }
+    
+    public void setRefueled(boolean refueled) {
+        this.is_refueled = refueled;
+    }
+    
+    public boolean isRefueled() {
+        return is_refueled;
     }
 }

@@ -6,7 +6,7 @@
 /**
  *
  * @author admin
- * simple runway object to handle plane landing thread
+ * simple runway object to handle plane landing declaration functions
  * no identifier needed as there is only one runway
  * 
  */

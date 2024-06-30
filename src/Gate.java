@@ -6,9 +6,10 @@
 /**
  *
  * @author admin
- * This Gate class is used only for keeping track of available Gates
- * do not put sleep() functions here, as it runs on main thread
- * if we want to use a "wait for empty gate" and parking spots, implement wait and notify functions here
+ * This Gate class exists because I need to keep track of multiple available gates
+ * do not put any sleep() or delaying functions here, as this runs on the main thread
+ * if we want to implement parking slots, manage it here
+
  * 
  */
 public class Gate {

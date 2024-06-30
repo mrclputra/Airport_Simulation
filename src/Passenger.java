@@ -8,7 +8,8 @@
 /**
  *
  * @author admin
- * to be implemented
+ * Simplistic passenger class with ID system to differentiate thematic
+ * If I want to implement String names, I should define a name library here
  * 
  */
 public class Passenger {
@@ -19,12 +20,12 @@ public class Passenger {
     }
     
     public void board(Plane plane) throws InterruptedException {
-        Thread.sleep(500); // boarding time
+        Thread.sleep(100); // boarding time
         System.out.println(Main.getCurrentTime() + " Passenger " + ID + " has boarded plane " + plane.getID());
     }
     
     public void disembark(Plane plane) throws InterruptedException {
-        Thread.sleep(500); // disembark time
+        Thread.sleep(100); // disembark time
         System.out.println(Main.getCurrentTime() + " Passenger " + ID + " has disembarked from plane " + plane.getID());
     }
 }
