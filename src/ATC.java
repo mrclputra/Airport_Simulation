@@ -43,11 +43,6 @@ public class ATC {
     // as per assginment detailed, there will always be a gate available to assign to landed planes
     // no need for additional wait or notifies for the gate system
     public synchronized Gate assignGate(Plane plane) throws InterruptedException {
-        //check if plane has an emergency
-//        if(plane.isEmergency()) {
-//            
-//        }
-        
         for(Gate gate : gates) {
             if(!gate.isOccupied()) {
                 gate.occupyGate(plane);
