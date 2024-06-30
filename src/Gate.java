@@ -25,13 +25,11 @@ public class Gate {
     // sets occupied to true, updates message
     public void occupyGate(Plane plane) throws InterruptedException {
         occupied = true;
-        System.out.println(Main.getCurrentTime() + " Plane " + plane.getID() + " is using gate " + ID);
     }
     
     // sets occupied to false, updates message
     public void releaseGate(Plane plane) {
         occupied = false;
-        System.out.println(Main.getCurrentTime() + " Plane " + plane.getID() + " has left gate " + ID);
     }
     
     public boolean isOccupied() {

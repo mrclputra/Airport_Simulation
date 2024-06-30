@@ -14,6 +14,7 @@ import java.util.Random;
  *
  * @author admin
  * main function program runs from here
+ * if you want to introduce processing delays, try to stay inside synchronized functions
  * 
  */
 public class Main {
@@ -31,18 +32,19 @@ public class Main {
         gates.add(new Gate(3)); // emergency gate
         
         ATC atc = new ATC(runway, gates);
+        FuelTruck truck = new FuelTruck();
         
         // generate planes
         Plane[] planes = new Plane[6]; // Array to store Plane instances
         for (int i = 0; i < 5; i++) {
             Thread thread = new Thread();
-            planes[i] = new Plane(i + 1, atc, false, thread); // Create normal planes
+            planes[i] = new Plane(i + 1, atc, truck, false, thread); // Create normal planes
             thread = new Thread(planes[i]);
         }
         
         // emergency plane
         Thread emergencyThread = new Thread();
-        planes[5] = new Plane(6, atc, true, emergencyThread); // Create emergency plane
+        planes[5] = new Plane(6, atc, truck, true, emergencyThread); // Create emergency plane
         emergencyThread = new Thread(planes[5]);
         
         // shuffle the planes array to randomize the order
@@ -59,7 +61,7 @@ public class Main {
                 e.printStackTrace();
             }
             Thread thread = new Thread(plane); // create a new thread for the plane
-            System.out.println(getCurrentTime() + " Plane " + plane.getID() + "(" + plane.getPassengerCount() + ")" + " has entered the airspace");
+            System.out.println(getCurrentTime() + " World: Flight " + plane.getID() + " has entered the airspace");
             thread.start();
         }
     }
@@ -81,5 +83,15 @@ public class Main {
             array[index] = array[i];
             array[i] = temp;
         }
+    }
+    
+    // used for color coding text, to be implemented
+    public static String getColorCode(int id) {
+        int color_code = 31 + (id % 6); // 31 to 36 are standard color codes for rgbmyc
+        return "\u001B[" + color_code + "m";
+    }
+    
+    private static String resetColor() {
+        return "\u001B[0m";
     }
 }

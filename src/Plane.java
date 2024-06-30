@@ -22,6 +22,7 @@ public class Plane implements Runnable {
     private boolean is_refueled;
     
     private final ATC atc;
+    private final FuelTruck truck;
     
     private final int max_passengers = 20;
     private Passenger[] passengers;
@@ -36,9 +37,10 @@ public class Plane implements Runnable {
     private final Thread plane_thread; 
     
     // constructor
-    public Plane(int ID, ATC atc, boolean is_emergency, Thread plane_thread) {
+    public Plane(int ID, ATC atc, FuelTruck truck, boolean is_emergency, Thread plane_thread) {
         this.ID = ID;
         this.atc = atc;
+        this.truck = truck;
         this.is_emergency = is_emergency;
         this.is_refueled = false;
         this.plane_thread = plane_thread;
@@ -74,7 +76,7 @@ public class Plane implements Runnable {
         // initialize the refueling thread
         refuel_thread = new Thread(() -> {
                 try {
-                    atc.requestRefuel(this); // request refuel truck
+                    truck.refuel(this); // request refuel truck
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     e.printStackTrace();
@@ -88,17 +90,21 @@ public class Plane implements Runnable {
         try {
             if(is_emergency) {
                 // declare emergency
-                System.out.println(Main.getCurrentTime() + " Plane " + ID + " has a fuel emergency");
+                System.out.println(Main.getCurrentTime() + " Flight " + ID + ", declaring a fuel emergency");
             }
             atc.requestLanding(this);   // request landing from atc
 
+            // why does putting a print statement on this line break the code?
             Gate gate = atc.assignGate(this); // get assigned a gate from atc
+            System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Affirmative, Heading to gate " + gate.getID());
+            Thread.sleep(2000); // time to taxi
+            System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Docked at gate " + gate.getID());
             
-            resupply_thread.start(); // start service plane threads
+            refuel_thread.start(); // start service plane threads
+            resupply_thread.start(); 
             cleaning_thread.start();
-            refuel_thread.start();
             
-            // uncomment below to include passenger simulation
+            // uncomment/comment block below to toggle passenger simulation
 //            System.out.println(Main.getCurrentTime() + " Plane " + ID + " is disembarking passengers");
 //            disembarkPassengers(); // disembark passengers
 //            Thread.sleep(500); // time between disembark and boarding processes
@@ -111,10 +117,12 @@ public class Plane implements Runnable {
             cleaning_thread.join();
 
             atc.releaseGate(gate, this); // undock from gate
+            System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Leaving gate " + gate.getID());
+            System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Requesting permission to takeoff");
             atc.requestTakeoff(this);   // request takeoff from atc
             
             Thread.sleep(4000); // simulate time to leave airspace
-            System.out.println(Main.getCurrentTime() + " Plane " + ID + " has left the airspace");
+            System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Leaving the airspace");
             
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -122,16 +130,28 @@ public class Plane implements Runnable {
         }
     }
     
+    public void land() throws InterruptedException {
+        System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Affirmative, landing on the runway");
+        Thread.sleep(5000); // simulate landing process
+        System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Landed on the runway");
+    }
+    
+    public void takeoff() throws InterruptedException {
+        System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Affirmative, heading to runway to takeoff");
+        Thread.sleep(5000); // simulate time to takeoff
+        System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Airborne, now climbing to altitude");
+    }
+    
     private void resupplyPlane() throws InterruptedException {
-        System.out.println(Main.getCurrentTime() + " Plane " + ID + " is being resupplied");
+        System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Being resupplied");
         Thread.sleep(4000); // duration of plane resupplying
-        System.out.println(Main.getCurrentTime() + " Plane " + ID + " has finished resupplying");
+        System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Finished resupplying");
     }
     
     private void cleanPlane() throws InterruptedException {
-        System.out.println(Main.getCurrentTime() + " Plane " + ID + " is being cleaned");
+        System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Being cleaned");
         Thread.sleep(3000); // duration of plane cleaning
-        System.out.println(Main.getCurrentTime() + " Plane " + ID + " has finished cleaning");
+        System.out.println(Main.getCurrentTime() + " Flight " + ID + ": Finished cleaning");
     }
     
     private void disembarkPassengers() throws InterruptedException {
