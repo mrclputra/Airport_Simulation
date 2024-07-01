@@ -102,12 +102,12 @@ public class Plane implements Runnable {
             refuel_thread.start(); // start service plane threads
             resupply_thread.start(); 
             cleaning_thread.start();
-            
-            // uncomment/comment block below to toggle passenger simulation
-            System.out.println(Main.getCurrentTime() + " Plane " + ID + " is disembarking passengers");
-            disembarkPassengers(); // disembark passengers
-            Thread.sleep(200); // time between disembark and boarding processes
-            boardPassengers(generatePassengers()); // board new passengers
+//            
+//            // uncomment/comment block below to toggle passenger simulation
+//            System.out.println(Main.getCurrentTime() + " Plane " + ID + " is disembarking passengers");
+//            disembarkPassengers(); // disembark passengers
+//            Thread.sleep(200); // time between disembark and boarding processes
+//            boardPassengers(generatePassengers()); // board new passengers
 
             // here I explicitly wait for all processes to finish before proceeding
             // through java 21 should handle it implicitly on its own

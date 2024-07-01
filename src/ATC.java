@@ -33,7 +33,7 @@ public class ATC {
         System.out.println(Main.getCurrentTime() + " ATC: Flight " + plane.getID() + ", hold position");
         
         synchronized (this) {
-            landing_queue.offer(plane); // add to queue
+            landing_queue.offer(plane); // add to queue, also runs Plane Comparator
             
             // wait until it's this plane's turn in the queue, applies to all
             while (!landing_queue.peek().equals(plane)) {
@@ -54,10 +54,8 @@ public class ATC {
             }
             
             landing_queue.poll(); // remove plane from landing queue
-            notifyAll(); // notifies wait[1]
-            // wtf?
+            notifyAll();
         }
-        
     }
     
     public synchronized void requestTakeoff(Plane plane) throws InterruptedException {
@@ -69,7 +67,6 @@ public class ATC {
             return;
         }
         
-        // notifies wait[2]
         notifyAll();
     }
     
@@ -89,7 +86,7 @@ public class ATC {
                         ", please proceed to Gate " + gate.getID() + " for docking");
                 gate.occupyGate(plane);
                 available_gates--;
-                System.out.println(Main.getCurrentTime() + " Available Gates: " + available_gates);
+                System.out.println(Main.getCurrentTime() + " New Available Gate Count: " + available_gates);
                 return gate;
             }
         }
@@ -106,10 +103,11 @@ public class ATC {
 
         // for regular planes
         available_gates++;
-        System.out.println(Main.getCurrentTime() + " Available Gates: " + available_gates);
+        System.out.println(Main.getCurrentTime() + " New Available Gate Count: " + available_gates);
     }
     
-    // always ensures emergency planes are placed first
+    // this nested class defines the order of the plane queue
+    // always ensures emergency is at the front
     private static class PlanePriorityComparator implements Comparator<Plane> {
         @Override
         public int compare(Plane p1, Plane p2) {
@@ -119,7 +117,7 @@ public class ATC {
             } else if (!p1.isEmergency() && p2.isEmergency()) {
                 return 1;
             } else {
-                return 0; // equal priotity or both emergency
+                return 0; // equal priority
             }
         }
     }

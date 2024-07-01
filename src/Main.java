@@ -52,7 +52,7 @@ public class Main {
             }
             
             // Output message indicating plane has entered airspace and start its thread
-            System.out.println(getCurrentTime() + " Flight " + plane.getID() + " has entered the airspace");
+            System.out.println(getCurrentTime() + " World: Flight " + plane.getID() + " has entered the airspace");
             planes[i].start();
         }
         
