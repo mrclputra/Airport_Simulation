@@ -21,11 +21,11 @@ public class Passenger {
     
     public void board(Plane plane) throws InterruptedException {
         Thread.sleep(100); // boarding time
-        System.out.println(Main.getCurrentTime() + " Passenger " + ID + ": Boarding flight " + plane.getID());
+        System.out.println(Main.getTime() + " Passenger " + ID + ": Boarding flight " + plane.getID());
     }
     
     public void disembark(Plane plane) throws InterruptedException {
         Thread.sleep(100); // disembark time
-        System.out.println(Main.getCurrentTime() + " Passenger " + ID + ": Disembarking Flight " + plane.getID());
+        System.out.println(Main.getTime() + " Passenger " + ID + ": Disembarking Flight " + plane.getID());
     }
 }

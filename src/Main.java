@@ -18,6 +18,7 @@ import java.util.Random;
  */
 public class Main {
     private static LocalDateTime start_time; // start time to keep track of program duration
+    private static int PLANE_COUNT = 6;
     
     public static void main(String[] args) {
         System.out.println("Simulation Initialized");
@@ -32,46 +33,53 @@ public class Main {
         // create atc and fuel truck objects
         ATC atc = new ATC(gates);
         FuelTruck truck = new FuelTruck();
-
-        // Generate planes
-        Thread[] planes = new Thread[6];
-
-        // Create and start each plane thread with random delays
-        Random random = new Random();
-        for (int i = 0; i < 6; i++) {
-            boolean isEmergency = (i == 5); // Assuming the 6th plane (index 5) is emergency
-            Plane plane = new Plane(i + 1, atc, truck, isEmergency);
-            planes[i] = new Thread(plane);
+        
+        // generate planes
+        Plane[] planes = new Plane[PLANE_COUNT];
+        Thread[] plane_threads = new Thread[PLANE_COUNT];
+        
+        for(int i = 0; i < planes.length; i++) {
+            planes[i] = new Plane(i + 1, atc, truck, false);
+        }
+        
+        // set an emergency plane
+        planes[planes.length - 1].setEmergency(true);
+        
+        // random object
+        // uses 'i' to iterate through threads list
+        Random rdm = new Random();
+        for(int i = 0; i < planes.length; i++) {
+            Plane plane = planes[i];
+            plane_threads[i] = new Thread(plane);
             
-            // Generate random delay between 0 to 2 seconds (0 to 2000 milliseconds)
-            int delay = random.nextInt(2000);
             try {
-                Thread.sleep(delay);
+                    int delay = rdm.nextInt(2000) + 1; // 1-3 second delay
+                    Thread.sleep(delay);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    e.printStackTrace();
+                }
+            
+            System.out.println(getTime() + " World: Flight: " + plane.getID() + " has entered the airspace");
+            plane_threads[i].start();
+        }
+        
+        // ensure all threads complete execution
+        for(Thread thread : plane_threads) {
+            try {
+                thread.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            
-            // Output message indicating plane has entered airspace and start its thread
-            System.out.println(getCurrentTime() + " World: Flight " + plane.getID() + " has entered the airspace");
-            planes[i].start();
         }
         
-        // Wait for all planes to finish
-        for (Thread planeThread : planes) {
-            try {
-                planeThread.join();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                e.printStackTrace();
-            }
-        }
+        // run sanity checks
+        atc.sanityCheck(planes);
         
-        // Simulation completed
-        System.out.println(getCurrentTime() + " Simulation completed successfully.");
     }
     
     // used to keep track of "simultaneous" processes and time
-    public static String getCurrentTime() {
+    public static String getTime() {
         Duration duration = Duration.between(start_time, LocalDateTime.now());
         long seconds = duration.getSeconds();
         long millis = duration.toMillis() % 1000;
@@ -91,7 +99,7 @@ public class Main {
     
     // used for color coding text, to be implemented
     public static String getColorCode(int id) {
-        int color_code = 31 + (id % 6); // 31 to 36 are standard color codes for rgbmyc
+        int color_code = 30 + (id % PLANE_COUNT);
         return "\u001B[" + color_code + "m";
     }
     

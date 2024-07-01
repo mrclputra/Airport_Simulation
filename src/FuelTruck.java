@@ -19,11 +19,11 @@ public class FuelTruck {
         }
         available = false; // current thread is using the truck
 
-        System.out.println(Main.getCurrentTime() + " Fuel Truck: Moving to Flight " + plane.getID());
+        System.out.println(Main.getTime() + " Fuel Truck: Moving to Flight " + plane.getID());
         Thread.sleep(2000); // simulate time to move between planes
-        System.out.println(Main.getCurrentTime() + " Fuel Truck: Refueling Flight " + plane.getID());
+        System.out.println(Main.getTime() + " Fuel Truck: Refueling Flight " + plane.getID());
         Thread.sleep(5000); // simulate refueling time
-        System.out.println(Main.getCurrentTime() + " Fuel Truck: Finished refueling Flight " + plane.getID());
+        System.out.println(Main.getTime() + " Fuel Truck: Finished refueling Flight " + plane.getID());
 
         available = true;
         notify();

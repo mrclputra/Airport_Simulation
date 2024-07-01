@@ -15,15 +15,15 @@ public class Runway {
     
     public void land(Plane plane) throws InterruptedException {
         // plane landing process here
-        System.out.println(Main.getCurrentTime() + " Plane " + plane.getID() + " is using the runway to land");
+        System.out.println(Main.getTime() + " Plane " + plane.getID() + " is using the runway to land");
         Thread.sleep(2000); // simulate landing process
-        System.out.println(Main.getCurrentTime() + " Plane " + plane.getID() + " has landed and is done using the runway");
+        System.out.println(Main.getTime() + " Plane " + plane.getID() + " has landed and is done using the runway");
     }
     
     public void takeoff(Plane plane) throws InterruptedException {
         // plane takeoff process here
-        System.out.println(Main.getCurrentTime() + " Plane " + plane.getID() + " is using the runway to take off");
+        System.out.println(Main.getTime() + " Plane " + plane.getID() + " is using the runway to take off");
         Thread.sleep(2000); // simulate time to takeoff
-        System.out.println(Main.getCurrentTime() + " Plane " + plane.getID() + " has taken off and is done using the runway");
+        System.out.println(Main.getTime() + " Plane " + plane.getID() + " has taken off and is done using the runway");
     }
 }
