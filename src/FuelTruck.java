@@ -22,7 +22,7 @@ public class FuelTruck {
         System.out.println(Main.getTime() + " Fuel Truck: Moving to Flight " + plane.getID());
         Thread.sleep(2000); // simulate time to move between planes
         System.out.println(Main.getTime() + " Fuel Truck: Refueling Flight " + plane.getID());
-        Thread.sleep(5000); // simulate refueling time
+        Thread.sleep(6000); // simulate refueling time
         System.out.println(Main.getTime() + " Fuel Truck: Finished refueling Flight " + plane.getID());
 
         available = true;

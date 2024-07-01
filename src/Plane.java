@@ -24,7 +24,7 @@ public class Plane implements Runnable {
     private final ATC atc;
     private final FuelTruck truck;
     
-    private final int max_passengers = 10;
+    private final int max_passengers = 20; // change maximum number of passengers per plane here
     private Passenger[] passengers;
     private final ExecutorService disembark_exs;
     private final ExecutorService board_exs;
@@ -48,7 +48,7 @@ public class Plane implements Runnable {
         this.passengers = generatePassengers();
         
         // use single thread executors for sequential execution
-        disembark_exs = Executors.newSingleThreadExecutor(); 
+        disembark_exs = Executors.newSingleThreadExecutor();
         board_exs = Executors.newSingleThreadExecutor();
         
         // initialize the resupply thread
@@ -87,16 +87,18 @@ public class Plane implements Runnable {
     @Override
     public void run() {
         try {
+            System.out.println(Main.getTime()+ " Flight " + ID + ": entering the airspace");
+            
             if(is_emergency) {
                 // declare emergency
                 System.out.println(Main.getTime() + " Flight " + ID + ": Declaring a fuel emergency");
             }
-            atc.requestLanding(this);   // request landing from atc
+            atc.requestLanding(this); // request landing from atc
 
-            // why does putting a print statement on this line break the code?
-            Gate gate = atc.assignGate(this); // get assigned a gate from atc
+            Gate gate = atc.requestGate(this); // request a gate from atc
+            
             System.out.println(Main.getTime() + " Flight " + ID + ": Affirmative, Heading to gate " + gate.getID());
-            Thread.sleep(2000); // time to taxi
+            Thread.sleep(2000); // simulate time to taxi
             System.out.println(Main.getTime() + " Flight " + ID + ": Docked at gate " + gate.getID());
             
             refuel_thread.start(); // start service plane threads
@@ -106,24 +108,26 @@ public class Plane implements Runnable {
 //            // uncomment/comment block below to toggle passenger simulation
             System.out.println(Main.getTime()+ " Flight " + ID + ": Disembarking passengers");
             disembarkPassengers(); // disembark passengers
-            Thread.sleep(200); // time between disembark and boarding processes
+            System.out.println(Main.getTime()+ " Flight " + ID + ": Finished disembarking passengers");
+            Thread.sleep(200); // simulate preparation delay between disembark and boarding procedures
+            System.out.println(Main.getTime()+ " Flight " + ID + ": Boarding new passengers");
             boardPassengers(generatePassengers()); // board new passengers
+            System.out.println(Main.getTime()+ " Flight " + ID + ": Finished boarding passengers");
 
-            // here I explicitly wait for all processes to finish before proceeding
-            // through java 21 should handle it implicitly on its own
+            // Explicitly wait for all processes to finish before proceeding
             refuel_thread.join();
             resupply_thread.join();
             cleaning_thread.join();
             
-            System.out.println(Main.getTime() + " Flight " + ID + ": Finished all Ground Operations");
-            Thread.sleep(1000); // time for pre-flight checks
+            System.out.println(Main.getTime() + " Flight " + ID + ": Completed all Ground Operations, Initiating Pre-Flight Checks");
+            Thread.sleep(1000); // simulate startup sequence
 
             atc.releaseGate(gate, this); // undock from gate
             System.out.println(Main.getTime() + " Flight " + ID + ": Leaving gate " + gate.getID());
             System.out.println(Main.getTime() + " Flight " + ID + ": Requesting permission to takeoff");
             atc.requestTakeoff(this);   // request takeoff from atc
             
-            Thread.sleep(2000); // simulate time to leave airspace
+            Thread.sleep(3000); // simulate time to leave airspace
             System.out.println(Main.getTime() + " Flight " + ID + ": Leaving the airspace");
             
         } catch (InterruptedException e) {
@@ -140,22 +144,24 @@ public class Plane implements Runnable {
     
     public void takeoff() throws InterruptedException {
         System.out.println(Main.getTime() + " Flight " + ID + ": Affirmative, heading to runway to takeoff");
-        Thread.sleep(2000); // simulate time to takeoff
+        Thread.sleep(3000); // simulate time to takeoff
         System.out.println(Main.getTime() + " Flight " + ID + ": Airborne, now climbing to altitude");
     }
     
     private void resupplyPlane() throws InterruptedException {
         System.out.println(Main.getTime() + " Flight " + ID + ": Being resupplied");
-        Thread.sleep(4000); // duration of plane resupplying
+        Thread.sleep(5000); // simulate time to resupply plane
         System.out.println(Main.getTime() + " Flight " + ID + ": Finished resupplying");
     }
     
     private void cleanPlane() throws InterruptedException {
         System.out.println(Main.getTime() + " Flight " + ID + ": Being cleaned");
-        Thread.sleep(3000); // duration of plane cleaning
+        Thread.sleep(4000); // simulate time to clean plane
         System.out.println(Main.getTime() + " Flight " + ID + ": Finished cleaning");
     }
     
+    // each passenger runs on their own thread, but are run sequentially because of singlethread executioner
+    // could i have made this entire process a single thread? yes, but this is more fun
     private void disembarkPassengers() throws InterruptedException {
         for(Passenger passenger : passengers) {
             board_exs.execute(() -> {
@@ -166,11 +172,11 @@ public class Plane implements Runnable {
                     e.printStackTrace();
                 } 
             });
-            Thread.sleep(500); // time between each passenger disembarking
+            Thread.sleep(250); // simulate time for each passenger disembarking
         }
         
-        board_exs.shutdown();
-        board_exs.awaitTermination(1, TimeUnit.MINUTES);
+        board_exs.shutdown(); // tells service to stop accepting new tasks, but completes the already submitted ones
+        board_exs.awaitTermination(2, TimeUnit.SECONDS); // ensures all tasks are completed before exiting function
     }
     
     public void boardPassengers(Passenger[] passengers) throws InterruptedException {
@@ -183,16 +189,16 @@ public class Plane implements Runnable {
                     e.printStackTrace();
                 }
             });
-            Thread.sleep(500);
+            Thread.sleep(250); // time for each passenger to board
         }
-        disembark_exs.shutdown();
-        disembark_exs.awaitTermination(1, TimeUnit.MINUTES);
+        disembark_exs.shutdown(); // tells service to stop accepting new tasks, but completes the already submitted ones
+        disembark_exs.awaitTermination(2, TimeUnit.SECONDS); // ensures all tasks are completed before exiting function
     }
     
     // simulate random passenger generation. Used in initialization and boarding
     private Passenger[] generatePassengers() {
         Random rdm = new Random();
-        int count = rdm.nextInt(max_passengers + 1);
+        int count = rdm.nextInt(max_passengers - 4) + 5;
         Passenger[] passengers = new Passenger[count];
         
         for(int i = 0; i < count; i++) {

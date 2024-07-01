@@ -18,7 +18,7 @@ import java.util.List;
 public class ATC {
     private int available_gates; // this variable only keeps track of regular planes in the first 2 gates
     private final List<Gate> gates;
-    private LinkedList<Plane> landing_queue;
+    private final LinkedList<Plane> landing_queue;
     
     public ATC(List<Gate> gates) {
         this.gates = gates;
@@ -79,7 +79,7 @@ public class ATC {
     // as per detailed, there will always be a gate available to assign for landed planes
     // there is no need for additional queues or waits for the gate system, directly assign planes to a gate after landing
     // i kept this synchronized because of the Gate occupancy and available_gates variables being mutable and shared
-    public synchronized Gate assignGate(Plane plane) throws InterruptedException {
+    public synchronized Gate requestGate(Plane plane) throws InterruptedException {
         if (plane.isEmergency()) {
             System.out.println(Main.getTime() + " ATC: Flight " + plane.getID() +
                     ", please proceed to Gate 3 for docking");
@@ -114,6 +114,7 @@ public class ATC {
     
     // sanity checks here
     public void sanityCheck(Plane[] planes) {
+        System.out.print("\n");
         System.out.println(Main.getTime() + " ATC: Beginning Sanity Checks");
         // check that all gates are empty
         for(Gate gate : gates) {

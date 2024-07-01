@@ -18,7 +18,7 @@ import java.util.Random;
  */
 public class Main {
     private static LocalDateTime start_time; // start time to keep track of program duration
-    private static int PLANE_COUNT = 6;
+    private static final int PLANE_COUNT = 6;
     
     public static void main(String[] args) {
         System.out.println("Simulation Initialized");
@@ -45,6 +45,8 @@ public class Main {
         // set an emergency plane
         planes[planes.length - 1].setEmergency(true);
         
+//        shuffleArray(planes);
+        
         // random object
         // uses 'i' to iterate through threads list
         Random rdm = new Random();
@@ -53,14 +55,13 @@ public class Main {
             plane_threads[i] = new Thread(plane);
             
             try {
-                    int delay = rdm.nextInt(2000) + 1; // 1-3 second delay
+                    int delay = rdm.nextInt(2000) + 1000; // 1-3 second delay
                     Thread.sleep(delay);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     e.printStackTrace();
                 }
             
-            System.out.println(getTime() + " World: Flight: " + plane.getID() + " has entered the airspace");
             plane_threads[i].start();
         }
         
@@ -83,7 +84,16 @@ public class Main {
         Duration duration = Duration.between(start_time, LocalDateTime.now());
         long seconds = duration.getSeconds();
         long millis = duration.toMillis() % 1000;
-        return String.format("%02d:%03d", seconds, millis);
+        String time_formatted = String.format("%02d:%03d", seconds, millis);
+        return time_formatted;
+
+        //String color_code = getColorByTime(duration.toMillis());
+        //return color_code + time_formatted;
+    }
+    
+    public static String getColorByTime(long elapsed_time) {
+        int color_code = 16 + (int) ((elapsed_time / 10) % 240); // 256-color mode, update every 10ms
+        return "\u001B[38;5;" + color_code + "m";
     }
     
     // used to shuffle order of planes
@@ -97,13 +107,13 @@ public class Main {
         }
     }
     
-    // used for color coding text, to be implemented
-    public static String getColorCode(int id) {
-        int color_code = 30 + (id % PLANE_COUNT);
-        return "\u001B[" + color_code + "m";
-    }
-    
-    private static String resetColor() {
-        return "\u001B[0m";
-    }
+    // used for color coding specific text blocks based on plane ID? to be used?
+//    public static String getColorCode(int id) {
+//        int color_code = 30 + (id % PLANE_COUNT);
+//        return "\u001B[" + color_code + "m";
+//    }
+//    
+//    public static String resetColor() {
+//        return "\u001B[0m";
+//    }
 }
