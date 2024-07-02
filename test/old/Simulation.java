@@ -1,3 +1,5 @@
+package old;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -16,7 +18,7 @@ import java.util.Random;
  * if you want to introduce processing delays, try to stay inside synchronized functions
  * 
  */
-public class Main {
+public class Simulation {
     private static LocalDateTime start_time; // start time to keep track of program duration
     private static final int PLANE_COUNT = 6;
     

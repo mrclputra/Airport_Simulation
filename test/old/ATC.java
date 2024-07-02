@@ -1,3 +1,5 @@
+package old;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -25,12 +27,12 @@ public class ATC {
         this.available_gates = gates.size() - 1; // exclude the emergency gate
         this.landing_queue = new LinkedList<>();
         
-        System.out.println(Main.getTime() + " ATC: Available Gates: " + available_gates); // debug
+        System.out.println(Simulation.getTime() + " ATC: Available Gates: " + available_gates); // debug
     }
     
     public void requestLanding(Plane plane) throws InterruptedException {
         // put all planes on initial hold order
-        System.out.println(Main.getTime() + " ATC: Flight " + plane.getID() + ", hold position");
+        System.out.println(Simulation.getTime() + " ATC: Flight " + plane.getID() + ", hold position");
         
         synchronized (this) {
             if(plane.isEmergency()) {
@@ -45,7 +47,7 @@ public class ATC {
             }
             
             if(plane.isEmergency()) {
-                System.out.println(Main.getTime() + " ATC: Flight " + plane.getID() + ", you are cleared to land on the Runway");
+                System.out.println(Simulation.getTime() + " ATC: Flight " + plane.getID() + ", you are cleared to land on the Runway");
                 plane.land();
             } else {
                 while (available_gates == 0) {
@@ -54,7 +56,7 @@ public class ATC {
                     // current plane here is still the head of queue, will not conflict with previous wait
                     wait();
                 }
-                System.out.println(Main.getTime() + " ATC: Flight " + plane.getID() + ", you are cleared to land on the Runway");
+                System.out.println(Simulation.getTime() + " ATC: Flight " + plane.getID() + ", you are cleared to land on the Runway");
                 plane.land();
             }
             
@@ -64,7 +66,7 @@ public class ATC {
     }
 
     public synchronized void requestTakeoff(Plane plane) throws InterruptedException {
-        System.out.println(Main.getTime() + " ATC: Flight " + plane.getID() + ", you are cleared to use the Runway for takeoff");
+        System.out.println(Simulation.getTime() + " ATC: Flight " + plane.getID() + ", you are cleared to use the Runway for takeoff");
         plane.takeoff();
 
         if(plane.isEmergency()) {
@@ -81,18 +83,18 @@ public class ATC {
     // i kept this synchronized because of the Gate occupancy and available_gates variables being mutable and shared
     public synchronized Gate requestGate(Plane plane) throws InterruptedException {
         if (plane.isEmergency()) {
-            System.out.println(Main.getTime() + " ATC: Flight " + plane.getID() +
+            System.out.println(Simulation.getTime() + " ATC: Flight " + plane.getID() +
                     ", please proceed to Gate 3 for docking");
             return gates.get(2); // assign emergency plane to gate 3
         }
 
         for (Gate gate : gates) {
             if (!gate.isOccupied()) {
-                System.out.println(Main.getTime() + " ATC: Flight " + plane.getID() +
+                System.out.println(Simulation.getTime() + " ATC: Flight " + plane.getID() +
                         ", please proceed to Gate " + gate.getID() + " for docking");
-                gate.occupyGate(plane);
                 available_gates--;
-                System.out.println(Main.getTime() + " New Available Gate Count: " + available_gates);
+                gate.occupyGate(plane);
+                System.out.println(Simulation.getTime() + " New Available Gate Count: " + available_gates);
                 return gate;
             }
         }
@@ -109,17 +111,17 @@ public class ATC {
 
         // update regular planes gate count
         available_gates++;
-        System.out.println(Main.getTime() + " New Available Gate Count: " + available_gates); // debug, this may be commented
+        System.out.println(Simulation.getTime() + " New Available Gate Count: " + available_gates); // debug, this may be commented
     }
     
     // sanity checks here
     public void sanityCheck(Plane[] planes) {
         System.out.print("\n");
-        System.out.println(Main.getTime() + " ATC: Beginning Sanity Checks");
+        System.out.println(Simulation.getTime() + " ATC: Beginning Sanity Checks");
         // check that all gates are empty
         for(Gate gate : gates) {
             String status = gate.isOccupied() ? "occupied" : "empty";
-            System.out.println(Main.getTime() + " ATC: Gate " + gate.getID() + " status " + status);
+            System.out.println(Simulation.getTime() + " ATC: Gate " + gate.getID() + " status " + status);
         }
         
         // max, average, min waiting times

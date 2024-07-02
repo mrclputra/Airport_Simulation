@@ -1,15 +1,14 @@
-
-
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
+package refactor;
 
 /**
  *
  * @author admin
- * Simplistic passenger class with ID system to differentiate thematic
- * If I want to implement String names, I should define a name library here
+ * Simplistic passenger class with ID system to differentiate their threads
+ * If i want to implement String names, it should be done inside the plane class and called in constructor
  * 
  */
 public class Passenger {
@@ -20,10 +19,10 @@ public class Passenger {
     }
     
     public void board(Plane plane) throws InterruptedException {
-        System.out.println(Main.getTime() + " Passenger " + ID + ": Boarding flight " + plane.getID());
+        System.out.println(Simulation.getTime() + " Passenger " + ID + ": Boarding flight " + plane.getID());
     }
     
     public void disembark(Plane plane) throws InterruptedException {
-        System.out.println(Main.getTime() + " Passenger " + ID + ": Disembarking Flight " + plane.getID());
+        System.out.println(Simulation.getTime() + " Passenger " + ID + ": Disembarking Flight " + plane.getID());
     }
 }

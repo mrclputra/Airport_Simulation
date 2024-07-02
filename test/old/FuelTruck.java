@@ -1,3 +1,5 @@
+package old;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -19,11 +21,11 @@ public class FuelTruck {
         }
         available = false; // current thread is using the truck
 
-        System.out.println(Main.getTime() + " Fuel Truck: Moving to Flight " + plane.getID());
+        System.out.println(Simulation.getTime() + " Fuel Truck: Moving to Flight " + plane.getID());
         Thread.sleep(2000); // simulate time to move between planes
-        System.out.println(Main.getTime() + " Fuel Truck: Refueling Flight " + plane.getID());
+        System.out.println(Simulation.getTime() + " Fuel Truck: Refueling Flight " + plane.getID());
         Thread.sleep(6000); // simulate refueling time
-        System.out.println(Main.getTime() + " Fuel Truck: Finished refueling Flight " + plane.getID());
+        System.out.println(Simulation.getTime() + " Fuel Truck: Finished refueling Flight " + plane.getID());
 
         available = true;
         notify();
